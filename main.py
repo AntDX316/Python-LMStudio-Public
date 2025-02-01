@@ -32,16 +32,21 @@ class AIGUI:
             background=[("active", "#DDDDDD")]
         )
 
-        style.configure("MainFrame.TFrame", background="#f0f0f0")
-        style.configure("MainLabel.TLabel", background="#f0f0f0", font=("Helvetica", 14))
+        # Configure background colors
+        bg_color = "#F5F5F5"  # Light grey background
+        style.configure("MainFrame.TFrame", background=bg_color)
+        style.configure("MainLabel.TLabel", background=bg_color, font=("Helvetica", 14))
 
         # Bind cleanup
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         atexit.register(self.cleanup)
 
         # Main frame
-        self.main_frame = ttk.Frame(self.root, style="MainFrame.TFrame", padding=10)
-        self.main_frame.pack(fill=tk.BOTH, expand=True)
+        self.main_frame = ttk.Frame(self.root, style="MainFrame.TFrame")
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Configure root background
+        self.root.configure(bg=bg_color)
 
         # System Message Label
         system_label = ttk.Label(self.main_frame, text="System Message:", style="MainLabel.TLabel")
@@ -51,6 +56,7 @@ class AIGUI:
         self.system_input = tk.Text(self.main_frame, height=2, font=("TkDefaultFont", 12))
         self.system_input.pack(fill=tk.X, pady=(0, 10))
         self.system_input.insert("1.0", "You are a helpful AI assistant.")
+        self.system_input.configure(bg="white")  # Keep input fields white
 
         # Prompt label
         self.prompt_label = ttk.Label(self.main_frame, text="User Message:", style="MainLabel.TLabel")
@@ -60,25 +66,30 @@ class AIGUI:
         self.prompt_input = tk.Text(self.main_frame, height=3, font=("TkDefaultFont", 12))
         self.prompt_input.pack(fill=tk.X, pady=(0, 10))
         self.prompt_input.insert("1.0", "Write 200 things a CEO can do.")
+        self.prompt_input.configure(bg="white")  # Keep input fields white
 
         # Parameters Frame
-        params_frame = ttk.Frame(self.main_frame)
+        params_frame = ttk.Frame(self.main_frame, style="MainFrame.TFrame")
         params_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        # Center frame for parameters
+        center_params_frame = ttk.Frame(params_frame, style="MainFrame.TFrame")
+        center_params_frame.pack(expand=True, pady=2)
 
         # Temperature Label and Entry
-        temp_label = ttk.Label(params_frame, text="Temperature:", style="MainLabel.TLabel")
+        temp_label = ttk.Label(center_params_frame, text="Temperature:", style="MainLabel.TLabel")
         temp_label.pack(side=tk.LEFT, padx=(0, 5))
         
         self.temperature_var = tk.StringVar(value="0.7")
-        self.temperature_entry = ttk.Entry(params_frame, textvariable=self.temperature_var, width=8)
+        self.temperature_entry = ttk.Entry(center_params_frame, textvariable=self.temperature_var, width=8)
         self.temperature_entry.pack(side=tk.LEFT, padx=(0, 20))
 
         # Max Tokens Label and Entry
-        tokens_label = ttk.Label(params_frame, text="Max Tokens:", style="MainLabel.TLabel")
+        tokens_label = ttk.Label(center_params_frame, text="Max Tokens:", style="MainLabel.TLabel")
         tokens_label.pack(side=tk.LEFT, padx=(0, 5))
         
-        self.max_tokens_var = tk.StringVar(value="-1")
-        self.max_tokens_entry = ttk.Entry(params_frame, textvariable=self.max_tokens_var, width=8)
+        self.max_tokens_var = tk.StringVar(value="8192")
+        self.max_tokens_entry = ttk.Entry(center_params_frame, textvariable=self.max_tokens_var, width=8)
         self.max_tokens_entry.pack(side=tk.LEFT)
 
         # Models available in LM Studio
@@ -89,21 +100,26 @@ class AIGUI:
 
         # Model dropdown label
         model_label = ttk.Label(self.main_frame, text="Select model:", style="MainLabel.TLabel")
-        model_label.pack()
+        model_label.pack(pady=(2,2))
+
+        # Center frame for model dropdown
+        center_model_frame = ttk.Frame(self.main_frame, style="MainFrame.TFrame")
+        center_model_frame.pack(fill=tk.X, pady=(0, 15))
 
         # Model dropdown
         self.model_dropdown = ttk.Combobox(
-            self.main_frame,
+            center_model_frame,
             textvariable=self.selected_model,
             values=[m[0] for m in self.models],
             state="readonly",
-            font=("TkDefaultFont", 12)
+            font=("TkDefaultFont", 12),
+            width=40
         )
-        self.model_dropdown.pack(pady=(0,10))
+        self.model_dropdown.pack(expand=True)
 
         # Button frame
         self.button_frame = ttk.Frame(self.main_frame, style="MainFrame.TFrame")
-        self.button_frame.pack(pady=(0, 10))
+        self.button_frame.pack(pady=(0, 15))
 
         # Generate button
         self.generate_button = ttk.Button(
@@ -129,7 +145,8 @@ class AIGUI:
             self.main_frame,
             wrap=tk.WORD,
             height=20,
-            font=("TkDefaultFont", 12)
+            font=("TkDefaultFont", 12),
+            bg="white"  # Keep response area white
         )
         self.response_area.pack(fill=tk.BOTH, expand=True)
         self.response_area.config(state=tk.DISABLED)

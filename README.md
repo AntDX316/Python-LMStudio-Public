@@ -1,90 +1,77 @@
-# Python LM Studio GUI
+# LM Studio Response Streamer
 
-Python LM Studio GUI is a powerful desktop application that brings a user-friendly interface to LM Studio's AI capabilities.
+LM Studio Response Streamer is a user-friendly desktop application that lets you interact with AI language models through LM Studio's API.
 
-This elegant tool allows you to interact with large language models through a simple graphical interface, featuring real-time streaming responses, customizable system prompts, and adjustable parameters like temperature and token limits.
+With its clean and intuitive interface, you can customize system prompts, adjust parameters like temperature and token limits, and see AI responses stream in real-time with markdown-style formatting.
 
-With built-in support for function calling and markdown-formatted responses, it makes AI interaction accessible while maintaining advanced features that power users expect.
-
-Whether you're testing prompts, generating content, or exploring AI capabilities, this application provides a seamless bridge between you and LM Studio's powerful language models.
+The app features a simple setup process, model selection capabilities, and the ability to stop generation at any time, making it perfect for anyone looking to experiment with local AI models without dealing with complex technical configurations.
 
 ## Features
 
-- 🤖 Compatible with LM Studio's API
-- 💬 Support for system and user messages
-- 🔄 Real-time streaming responses
-- 🛠️ Function calling support
-- 🎛️ Adjustable parameters (temperature, max tokens)
-- 🎨 Markdown-style formatting in responses
-- ⏹️ Stop generation at any time
+- Real-time response streaming from LM Studio
+- Customizable system messages and user prompts
+- Adjustable parameters (temperature, max tokens)
+- Model selection dropdown
+- Clean and intuitive GUI built with tkinter
+- Markdown-like text formatting in responses
+- Stop generation functionality
 
-## Setup
+## Prerequisites
 
-1. Install and start LM Studio:
-   - Download LM Studio from [https://lmstudio.ai/](https://lmstudio.ai/)
-   - Start the local server in LM Studio
-   - Load your desired model
+- Python 3.x
+- LM Studio running locally or on a remote server
+- Required Python packages (see requirements below)
 
-2. Clone and install dependencies:
+## Installation
+
+1. Clone this repository
+2. Install the required packages:
 ```bash
-git clone https://github.com/yourusername/Python-LMStudio.git
-cd Python-LMStudio
-pip install -r requirements.txt
+pip install requests python-dotenv tkinter
 ```
 
-3. Configure environment:
+3. Copy `.env-example` to `.env` and configure your settings:
 ```bash
-cp .env-example .env
-```
-Edit `.env` file and set:
-- `API_IP`: IP address of your LM Studio server (default: 127.0.0.1)
-- `PORT`: Port number (default: 1234)
-
-4. Start the application:
-```bash
-python main.py
+API_IP=127.0.0.1  # IP address of your LM Studio server
+PORT=1234         # Port of your LM Studio server
 ```
 
 ## Usage
 
-1. **System Message**: Set a system message to define the AI's behavior or context (optional)
-
-2. **User Message**: Enter your prompt or question
-
-3. **Parameters**:
-   - Temperature: Controls response randomness (0.0 to 1.0)
-   - Max Tokens: Limits response length (-1 for no limit)
-
-4. **Model Selection**: Choose from available LM Studio models
-
-5. **Controls**:
-   - Generate: Start generating a response
-   - Stop: Stop the current generation
-
-## Function Calling
-
-The application includes a sample product search function that demonstrates LM Studio's function calling capabilities:
-
-```python
-{
-    "name": "search_products",
-    "description": "Search the product catalog by various criteria",
-    "parameters": {
-        "query": "Search terms or product name",
-        "category": ["electronics", "clothing", "home", "outdoor"],
-        "max_price": "Maximum price in dollars"
-    }
-}
+1. Start LM Studio and ensure it's running with the API server enabled
+2. Run the application:
+```bash
+python main.py
 ```
 
-## Requirements
+3. Configure your settings in the GUI:
+   - Enter a system message (default: "You are a helpful AI assistant.")
+   - Type your user message
+   - Adjust temperature and max tokens as needed
+   - Select your preferred model from the dropdown
+   - Click "Generate" to start generation
+   - Use "Stop" to halt generation at any time
 
-- Python 3.x
-- LM Studio
-- Required Python packages:
-  - requests==2.31.0
-  - python-dotenv==1.0.1
+## Configuration
+
+The application uses environment variables for configuration:
+- `API_IP`: The IP address of your LM Studio server
+- `PORT`: The port number of your LM Studio server
+
+## Features in Detail
+
+- **System Message**: Sets the context for the AI model
+- **User Message**: Your input prompt for the AI
+- **Temperature**: Controls response randomness (0.0 - 1.0)
+- **Max Tokens**: Limits response length (-1 for no limit)
+- **Model Selection**: Choose from available LM Studio models
+- **Real-time Streaming**: See responses as they're generated
+- **Stop Generation**: Cancel generation at any time
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is open source and available under the MIT License. 
