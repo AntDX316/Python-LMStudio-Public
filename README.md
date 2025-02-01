@@ -6,7 +6,9 @@ LM Studio Response Streamer is a sleek, user-friendly desktop application that l
 
 With its clean interface, you can easily generate AI responses in real-time, customize model parameters like temperature and token length, and use system prompts to guide the AI's behavior.
 
-Perfect for developers, writers, and AI enthusiasts who want to work with local AI models without dealing with command-line interfaces or complex setups. The app features real-time streaming of responses, a model selection dropdown, and the ability to stop generation at any time, making it an ideal tool for both quick queries and longer AI-assisted writing sessions.
+Perfect for developers, writers, and AI enthusiasts who want to work with local AI models without dealing with command-line interfaces or complex setups.
+
+The app features real-time streaming of responses, a model selection dropdown, and the ability to stop generation at any time, making it an ideal tool for both quick queries and longer AI-assisted writing sessions.
 
 ## Features
 
