@@ -1,72 +1,89 @@
-# Python Ollama GUI
+# Python LM Studio GUI
 
-The Python Ollama GUI is a sleek, user-friendly desktop application that lets you interact with Ollama's AI models across your local network.
+Python LM Studio GUI is a powerful desktop application that brings a user-friendly interface to LM Studio's AI capabilities.
 
-It features a clean interface with a text input area, model selection dropdown, and real-time response streaming.
+This elegant tool allows you to interact with large language models through a simple graphical interface, featuring real-time streaming responses, customizable system prompts, and adjustable parameters like temperature and token limits.
 
-The app allows you to run Ollama on one machine and access it remotely from another computer on your network, making it perfect for users who want to leverage their powerful GPU machine while working from a different device.
+With built-in support for function calling and markdown-formatted responses, it makes AI interaction accessible while maintaining advanced features that power users expect.
 
-With support for various models like Llama, DeepSeek, Gemma, Phi4, and Mistral, it provides a convenient way to generate AI responses without the complexity of command-line interfaces.
+Whether you're testing prompts, generating content, or exploring AI capabilities, this application provides a seamless bridge between you and LM Studio's powerful language models.
 
-## Server Setup (Ollama PC)
+## Features
 
-1. Open CMD/Terminal and run these commands to configure Ollama for network access:
+- 🤖 Compatible with LM Studio's API
+- 💬 Support for system and user messages
+- 🔄 Real-time streaming responses
+- 🛠️ Function calling support
+- 🎛️ Adjustable parameters (temperature, max tokens)
+- 🎨 Markdown-style formatting in responses
+- ⏹️ Stop generation at any time
+
+## Setup
+
+1. Install and start LM Studio:
+   - Download LM Studio from [https://lmstudio.ai/](https://lmstudio.ai/)
+   - Start the local server in LM Studio
+   - Load your desired model
+
+2. Clone and install dependencies:
 ```bash
-set OLLAMA_ADDRESS=0.0.0.0:11434
-set OLLAMA_HOST=http://0.0.0.0:11434
-ollama serve
-```
-
-## Client Setup (Remote PC)
-
-1. Clone and install dependencies:
-```bash
-git clone https://github.com/yourusername/Python-Ollama.git
-cd Python-Ollama
+git clone https://github.com/yourusername/Python-LMStudio.git
+cd Python-LMStudio
 pip install -r requirements.txt
 ```
 
-2. Configure environment:
+3. Configure environment:
 ```bash
 cp .env-example .env
 ```
 Edit `.env` file and set:
-- `API_IP`: IP address of your Ollama server
-- `PORT`: Port number (default: 11434)
+- `API_IP`: IP address of your LM Studio server (default: 127.0.0.1)
+- `PORT`: Port number (default: 1234)
 
-3. Start the application:
+4. Start the application:
 ```bash
 python main.py
 ```
 
-## Customizing Models
+## Usage
 
-To add or modify AI models, edit `main.py` around line 61. The format is:
+1. **System Message**: Set a system message to define the AI's behavior or context (optional)
+
+2. **User Message**: Enter your prompt or question
+
+3. **Parameters**:
+   - Temperature: Controls response randomness (0.0 to 1.0)
+   - Max Tokens: Limits response length (-1 for no limit)
+
+4. **Model Selection**: Choose from available LM Studio models
+
+5. **Controls**:
+   - Generate: Start generating a response
+   - Stop: Stop the current generation
+
+## Function Calling
+
+The application includes a sample product search function that demonstrates LM Studio's function calling capabilities:
+
 ```python
-self.models = [
-    ("Display Name", "model_id"),
-    ("Llama 3.2 (3B, 2.0GB)", "llama3.2"),
-    # Add more models here
-]
+{
+    "name": "search_products",
+    "description": "Search the product catalog by various criteria",
+    "parameters": {
+        "query": "Search terms or product name",
+        "category": ["electronics", "clothing", "home", "outdoor"],
+        "max_price": "Maximum price in dollars"
+    }
+}
 ```
-- Left side: Name shown in dropdown menu
-- Right side: Ollama model ID
-
-## Features
-
-- 🖥️ Client-server architecture for network access
-- 🎯 Clean, modern Tkinter interface
-- 🤖 Support for multiple Ollama models
-- 💨 Real-time response streaming
-- 🛑 Stop generation at any time
-- 🎨 Markdown-style formatting support
 
 ## Requirements
 
 - Python 3.x
-- Ollama installed on server machine
-- Network connectivity between client and server
-- Required Python packages (see `requirements.txt`)
+- LM Studio
+- Required Python packages:
+  - requests==2.31.0
+  - python-dotenv==1.0.1
 
 ## License
 

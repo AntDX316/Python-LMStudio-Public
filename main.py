@@ -15,29 +15,25 @@ load_dotenv()
 class AIGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("AI Response Streamer")
-        self.root.geometry("800x600")
+        self.root.title("LM Studio Response Streamer")
+        self.root.geometry("800x800")  # Made taller to accommodate new controls
 
         # ----- Basic style setup for a simple, system-like look -----
         style = ttk.Style(root)
-        style.theme_use('clam')  # or 'default', 'alt', 'classic', etc.
+        style.theme_use('clam')
 
-        # A basic button style that only changes font & padding
         style.configure(
             "Basic.TButton",
             font=("Helvetica", 12, "bold"),
             padding=8
         )
-        # Slight hover effect (optional)
         style.map(
             "Basic.TButton",
             background=[("active", "#DDDDDD")]
         )
 
-        # Frame & label styling for minimal look
         style.configure("MainFrame.TFrame", background="#f0f0f0")
         style.configure("MainLabel.TLabel", background="#f0f0f0", font=("Helvetica", 14))
-        # ------------------------------------------------------------
 
         # Bind cleanup
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -47,25 +43,49 @@ class AIGUI:
         self.main_frame = ttk.Frame(self.root, style="MainFrame.TFrame", padding=10)
         self.main_frame.pack(fill=tk.BOTH, expand=True)
 
+        # System Message Label
+        system_label = ttk.Label(self.main_frame, text="System Message:", style="MainLabel.TLabel")
+        system_label.pack(pady=(0,5))
+
+        # System Message Input
+        self.system_input = tk.Text(self.main_frame, height=2, font=("TkDefaultFont", 12))
+        self.system_input.pack(fill=tk.X, pady=(0, 10))
+        self.system_input.insert("1.0", "You are a helpful AI assistant.")
+
         # Prompt label
-        self.prompt_label = ttk.Label(self.main_frame, text="Enter your prompt:", style="MainLabel.TLabel")
+        self.prompt_label = ttk.Label(self.main_frame, text="User Message:", style="MainLabel.TLabel")
         self.prompt_label.pack(pady=(0,5))
 
         # Prompt input
         self.prompt_input = tk.Text(self.main_frame, height=3, font=("TkDefaultFont", 12))
         self.prompt_input.pack(fill=tk.X, pady=(0, 10))
-        self.prompt_input.insert("1.0", "Write 200 things a CEO can do")
+        self.prompt_input.insert("1.0", "Write 200 things a CEO can do.")
 
-        # Models, sorted by ascending GB
-        # (DisplayString, modelID)
+        # Parameters Frame
+        params_frame = ttk.Frame(self.main_frame)
+        params_frame.pack(fill=tk.X, pady=(0, 10))
+
+        # Temperature Label and Entry
+        temp_label = ttk.Label(params_frame, text="Temperature:", style="MainLabel.TLabel")
+        temp_label.pack(side=tk.LEFT, padx=(0, 5))
+        
+        self.temperature_var = tk.StringVar(value="0.7")
+        self.temperature_entry = ttk.Entry(params_frame, textvariable=self.temperature_var, width=8)
+        self.temperature_entry.pack(side=tk.LEFT, padx=(0, 20))
+
+        # Max Tokens Label and Entry
+        tokens_label = ttk.Label(params_frame, text="Max Tokens:", style="MainLabel.TLabel")
+        tokens_label.pack(side=tk.LEFT, padx=(0, 5))
+        
+        self.max_tokens_var = tk.StringVar(value="-1")
+        self.max_tokens_entry = ttk.Entry(params_frame, textvariable=self.max_tokens_var, width=8)
+        self.max_tokens_entry.pack(side=tk.LEFT)
+
+        # Models available in LM Studio
         self.models = [
-            ("Llama 3.2 (3B, 2.0GB)",    "llama3.2"),
-            ("DeepSeek (7B, 4.7GB)",     "deepseek-r1"),
-            ("Gemma 2 (7B, 5.0GB)",      "gemma2"),
-            ("Phi4 (14B, 9.1GB)",        "phi4"),
-            ("Mistral (24B, 14GB)",      "mistral-small:24b")
+            ("deepseek-r1-distill-qwen-7b", "deepseek-r1-distill-qwen-7b"),
         ]
-        self.selected_model = tk.StringVar(value=self.models[0][0])  # default to first
+        self.selected_model = tk.StringVar(value=self.models[0][0])
 
         # Model dropdown label
         model_label = ttk.Label(self.main_frame, text="Select model:", style="MainLabel.TLabel")
@@ -139,49 +159,128 @@ class AIGUI:
 
     def generate_response(self):
         self.is_generating = True
-        accumulated_chars = 0
-        last_update_time = time.time()
+        self.accumulated_response = ""
 
         try:
             # Load the IP from .env
-            api_ip = os.getenv("API_IP", "127.0.0.1")  # default if missing
-            port = os.getenv("PORT", "11434")  # default Ollama port if missing
-            url = f"http://{api_ip}:{port}/api/generate"
+            api_ip = os.getenv("API_IP", "127.0.0.1")
+            port = os.getenv("PORT", "1234")
+            url = f"http://{api_ip}:{port}/v1/chat/completions"
 
             # Resolve the actual model name from the user's selection
             chosen_label = self.selected_model.get()
             selected_model_id = next(item[1] for item in self.models if item[0] == chosen_label)
 
+            # Define the function for product search
+            tools = [{
+                "type": "function",
+                "function": {
+                    "name": "search_products",
+                    "description": "Search the product catalog by various criteria. Use this whenever a customer asks about product availability, pricing, or specifications.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {
+                                "type": "string",
+                                "description": "Search terms or product name"
+                            },
+                            "category": {
+                                "type": "string",
+                                "description": "Product category to filter by",
+                                "enum": ["electronics", "clothing", "home", "outdoor"]
+                            },
+                            "max_price": {
+                                "type": "number",
+                                "description": "Maximum price in dollars"
+                            }
+                        },
+                        "required": ["query"],
+                        "additionalProperties": False
+                    }
+                }
+            }]
+
+            # Get system message and user message
+            system_message = self.system_input.get("1.0", tk.END).strip()
+            user_message = self.prompt_input.get("1.0", tk.END).strip()
+
+            # Prepare messages array
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": user_message})
+
+            # Get temperature and max_tokens
+            try:
+                temperature = float(self.temperature_var.get())
+            except ValueError:
+                temperature = 0.7
+
+            try:
+                max_tokens = int(self.max_tokens_var.get())
+            except ValueError:
+                max_tokens = -1
+
             data = {
                 "model": selected_model_id,
-                "prompt": self.prompt_input.get("1.0", tk.END).strip()
+                "messages": messages,
+                "tools": tools,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "stream": True  # Enable streaming
             }
 
-            self.current_response = requests.post(url, json=data, stream=True)
+            headers = {
+                "Content-Type": "application/json"
+            }
 
+            self.current_response = requests.post(url, json=data, headers=headers, stream=True)
+            
             for line in self.current_response.iter_lines():
                 if not self.is_generating:
                     break
+                    
                 if line:
-                    json_line = json.loads(line)
-                    response_fragment = json_line.get("response", "")
-                    self.accumulated_response += response_fragment
-                    accumulated_chars += len(response_fragment)
-
-                    current_time = time.time()
-                    if accumulated_chars >= 50 or (current_time - last_update_time) >= 0.5:
-                        self.display_new_content()
-                        accumulated_chars = 0
-                        last_update_time = current_time
+                    # Remove 'data: ' prefix if present
+                    line_text = line.decode('utf-8')
+                    if line_text.startswith("data: "):
+                        line_text = line_text[6:]
+                    
+                    # Skip "[DONE]" message
+                    if line_text == "[DONE]":
+                        continue
+                        
+                    try:
+                        response_data = json.loads(line_text)
+                        if "choices" in response_data and len(response_data["choices"]) > 0:
+                            choice = response_data["choices"][0]
+                            if choice.get("finish_reason") == "tool_calls":
+                                # Handle tool calls
+                                if "message" in choice and "tool_calls" in choice["message"]:
+                                    tool_calls = choice["message"]["tool_calls"]
+                                    for tool_call in tool_calls:
+                                        if tool_call["type"] == "function" and tool_call["function"]["name"] == "search_products":
+                                            function_args = json.loads(tool_call["function"]["arguments"])
+                                            self.accumulated_response = f"Searching for products with parameters:\n"
+                                            self.accumulated_response += f"Query: {function_args.get('query', 'N/A')}\n"
+                                            self.accumulated_response += f"Category: {function_args.get('category', 'N/A')}\n"
+                                            self.accumulated_response += f"Max Price: ${function_args.get('max_price', 'N/A')}\n"
+                                            self.display_new_content()
+                            elif "delta" in choice:
+                                # Handle regular streaming response
+                                delta = choice["delta"]
+                                if "content" in delta:
+                                    content = delta["content"]
+                                    self.accumulated_response += content
+                                    self.display_new_content()
+                    except json.JSONDecodeError:
+                        continue
 
         except Exception as e:
             self.response_area.config(state=tk.NORMAL)
             self.response_area.insert(tk.END, f"\nError: {str(e)}")
             self.response_area.config(state=tk.DISABLED)
         finally:
-            if accumulated_chars > 0:
-                self.display_new_content()
-
             self.is_generating = False
             self.current_response = None
             self.generate_button.config(state=tk.NORMAL)
